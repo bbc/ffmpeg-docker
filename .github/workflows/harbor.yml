@@ -1,0 +1,90 @@
+name: Publish ffmpeg-docker app to harbor docker registry
+
+env:
+    registry: "harbor.prod.bcn.bbc.co.uk"
+
+on:
+    workflow_dispatch:
+    push:
+        branches: ["main"]
+        paths-ignore:
+            - "**/README.md"
+            - "docs/**"
+            - "docker-compose**"
+jobs:
+    publish:
+        name: Push to Harbor
+        runs-on: [self-hosted, ffmpeg-docker]
+        strategy:
+            matrix:
+                architecture: [linux/amd64]
+        defaults:
+            run:
+                working-directory: ./
+        steps:
+            # get the latest version of the repository
+            - name: Checkout
+              uses: actions/checkout@v3
+            - uses: actions/setup-node@v3
+
+            # get current date and time for build
+            - name: Set current date and time as an environment variable
+              run: echo "timestamp=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_ENV
+            - name: Print current date and time
+              run: echo ${{ env.timestamp }}
+
+            # get the package.json version
+            - uses: martinbeentjes/npm-get-version-action@master
+              name: Get backend version
+              id: app-version
+              with:
+                  path: ./
+
+            - name: Print current versions
+              run: echo Building with version ${{ steps.app-version.outputs.current-version }}
+
+            # docker buildx setup
+            - name: Set up QEMU
+              uses: docker/setup-qemu-action@v2
+
+            - name: Set up docker buildx
+              id: buildx
+              uses: docker/setup-buildx-action@v2
+              with:
+                  buildkitd-flags: --debug
+            - name: List available platforms
+              run: echo ${{ steps.buildx.outputs.platforms }}
+
+            # docker registry login
+            - name: Login to harbor registry
+              uses: docker/login-action@v2
+              with:
+                  registry: ${{env.registry}}
+                  username: ${{ secrets.HARBOR_USERNAME }}
+                  password: ${{ secrets.HARBOR_PASSWORD }}
+                  logout: false
+
+            # docker build image and push to registry
+            - name: Build and push to registry
+              uses: docker/build-push-action@v3
+              with:
+                  context: "./emu-app"
+                  platforms: ${{ matrix.architecture}}
+                  push: ${{ github.event_name != 'pull_request' }}
+                  tags: |
+                      ${{env.registry}}/emu/emu-ffmpeg:latest
+                      ${{env.registry}}/emu/emu-ffmpeg:${{steps.app-version.outputs.current-version}}
+                  outputs: type=registry,registry.insecure=true
+                  build-args: |
+                      DECKLINK_SUPPORT="false"
+                      NDI_SUPPORT="false"
+                      NON_FREE="true"
+                  labels: |
+                      author=${{github.actor}}
+                      version=${{steps.app-version.outputs.current-version}}
+                      uk.co.bbc.bug.build.timestamp=${{env.timestamp}}
+                      uk.co.bbc.bug.build.number=${{github.run_number}}
+                      uk.co.bbc.bug.build.id=${{github.run_id}}
+                      uk.co.bbc.bug.build.branch=${{github.ref_name}}
+                      uk.co.bbc.bug.build.commit=${{github.sha}}
+                      uk.co.bbc.bug.build.repository=${{github.repository}}
