@@ -7,11 +7,12 @@ FROM ubuntu:jammy
 
 ARG FFMPEG_VERSION="5.0"
 ARG NON_FREE="false"
+ARG VMAF="false"
 
 ARG DECKLINK_SUPPORT="false"
-ARG DECKLINK_SDK_URL="https://swr.cloud.blackmagicdesign.com/DeckLink/v12.4.1/Blackmagic_DeckLink_SDK_12.4.1.zip?verify="
-ARG DECKLINK_DRIVER_URL="https://swr.cloud.blackmagicdesign.com/DesktopVideo/v12.4.1/Blackmagic_Desktop_Video_Linux_12.4.1.tar.gz?verify="
-ARG DECKLINK_DRIVER_VERSION="12.4.1"
+ARG DECKLINK_SDK_URL="https://swr.cloud.blackmagicdesign.com/DeckLink/v12.7.1/Blackmagic_DeckLink_SDK_12.4.1.zip?verify="
+ARG DECKLINK_DRIVER_URL="https://swr.cloud.blackmagicdesign.com/DesktopVideo/v12.7.1/Blackmagic_Desktop_Video_Linux_12.4.1.tar.gz?verify="
+ARG DECKLINK_DRIVER_VERSION="12.7.1"
 
 ARG NDI_SUPPORT="false"
 ARG NDI_SDK_URL="https://downloads.ndi.tv/SDK/NDI_SDK_Linux/Install_NDI_SDK_v5_Linux.tar.gz"
@@ -130,7 +131,7 @@ RUN if [ "$NON_FREE" = "true" ];\
         git -C SVT-AV1 pull 2> /dev/null || git clone https://gitlab.com/AOMediaCodec/SVT-AV1.git && \
         mkdir -p SVT-AV1/build && \
         cd SVT-AV1/build && \
-        cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DCMAKE_BUILD_TYPE=Release -DBUILD_DEC=OFF -DBUILD_SHARED_LIBS=OFF .. && \
+        cmake -G "Unix Makefiles" -DCMAKE_INSTALL_PREFIX="$HOME/ffmpeg_build" -DCMAKE_BUILD_TYPE=Release -DBUILD_DEC=OFF -DBUILD_SHARED_LIBS=OFF>
         make && \
         make install && \
         # Add source and compile for Haivision SRT support
@@ -151,7 +152,12 @@ RUN if [ "$NON_FREE" = "true" ];\
         ./autogen.sh --build && \
         ./configure --enable-shared=no --prefix="$HOME/ffmpeg_build" --bindir="$HOME/bin" && \
         make && \
-        make install && \
+        make install;\
+    fi
+
+# Add VMAF libraries
+RUN if [ "$VMAF" = "true" ];\
+    then \
         # Add source and compile for Netflix VMAF support
         cd /ffmpeg_sources && \
         git -C libvmaf pull 2> /dev/null || git clone --depth 1 https://github.com/Netflix/vmaf.git && \
@@ -221,7 +227,7 @@ RUN CONFIGURE_OPTIONS="" && FDK_ACC="" &&\
     # Add Non Free Config if option is selected
     if [ "$NON_FREE" = "true" ];\
     then \
-       CONFIGURE_OPTIONS="--enable-nonfree --enable-libsrt --disable-libaom --disable-libsvtav1 --enable-libklvanc --enable-libvmaf --enable-libfdk-aac " && \
+       CONFIGURE_OPTIONS="--enable-nonfree --enable-libsrt --disable-libaom --disable-libsvtav1 --enable-libklvanc --enable-libfdk-aac " && \
        FDK_AAC="--enable-libfdk-aac"; \
     fi && \
     # Add NDI Config if option is selected
@@ -229,10 +235,15 @@ RUN CONFIGURE_OPTIONS="" && FDK_ACC="" &&\
     then \
         CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --enable-libndi_newtek ";\
     fi &&\
+    # Add VMAF Config if option is selected
+    if [ "$VMAF" = "true" ];\
+    then \
+        CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --enable-libvmaf ";\
+    fi &&\
     # Add Decklink Config if option is selected
     if [ "$DECKLINK_SUPPORT" = "true" ];\
     then \
-        CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS--enable-decklink "; \
+        CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --enable-decklink "; \
     fi && \
     # Print Configuration Options
     echo "Extra Configured Options: $CONFIGURE_OPTIONS" && \
