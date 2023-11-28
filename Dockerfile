@@ -10,8 +10,8 @@ ARG NON_FREE="false"
 ARG VMAF="false"
 
 ARG DECKLINK_SUPPORT="false"
-ARG DECKLINK_SDK_URL="https://swr.cloud.blackmagicdesign.com/DeckLink/v12.7.1/Blackmagic_DeckLink_SDK_12.4.1.zip?verify="
-ARG DECKLINK_DRIVER_URL="https://swr.cloud.blackmagicdesign.com/DesktopVideo/v12.7.1/Blackmagic_Desktop_Video_Linux_12.4.1.tar.gz?verify="
+ARG DECKLINK_SDK_URL="https://swr.cloud.blackmagicdesign.com/DeckLink/v12.7.1/Blackmagic_DeckLink_SDK_12.7.1.zip?verify="
+ARG DECKLINK_DRIVER_URL="https://swr.cloud.blackmagicdesign.com/DesktopVideo/v12.7.1/Blackmagic_Desktop_Video_Linux_12.7.1.tar.gz?verify="
 ARG DECKLINK_DRIVER_VERSION="12.7.1"
 
 ARG NDI_SUPPORT="false"
@@ -84,7 +84,7 @@ RUN if [ "$DECKLINK_SUPPORT" = "true" ];\
         wget -O "desktop-video-driver.tar.gz" "$DECKLINK_DRIVER_URL" &&\
         tar -xvf desktop-video-driver.tar.gz &&\
         #Decklink Driver: Get .deb name and location
-        DECKLINK_DRIVER_DEB="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64/desktopvideo_12.4.1a15_amd64.deb" &&\
+        DECKLINK_DRIVER_DEB="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64/desktopvideo_12.7.1a1_amd64.deb" &&\
         SEARCH_DIR="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64" &&\ 
         echo "Searching for driver in $SEARCH_DIR" &&\
         for FILE in "$SEARCH_DIR"/*;\
