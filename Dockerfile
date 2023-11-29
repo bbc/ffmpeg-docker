@@ -24,6 +24,8 @@ ENV NODE_MAJOR=18
 RUN mkdir $HOME/ffmpeg_sources
 RUN mkdir $HOME/bin
 
+SHELL ["/bin/bash", "-c"] 
+
 RUN LINUX_KERNEL_PACKAGES="" && \
     # Detect Linux OS and add kernel packages
     if [[ "$OSTYPE" == "linux-gnu"* ]];\
@@ -81,7 +83,7 @@ WORKDIR $HOME/decklink
 RUN if [ "$DECKLINK_SUPPORT" = "true" ];\
     then \
         #Decklink Driver: Download and extract
-        wget -O "desktop-video-driver.tar.gz" "$DECKLINK_DRIVER_URL" &&\
+        wget -qO "desktop-video-driver.tar.gz" "$DECKLINK_DRIVER_URL" &&\
         tar -xvf desktop-video-driver.tar.gz &&\
         #Decklink Driver: Get .deb name and location
         DECKLINK_DRIVER_DEB="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64/desktopvideo_12.7.1a1_amd64.deb" &&\
@@ -102,7 +104,7 @@ RUN if [ "$DECKLINK_SUPPORT" = "true" ];\
         #Decklink Driver: Cleanup files and folder
         rm -r "./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION" &&\
         #Decklink SDK: Get SDK, extract and copy
-        wget -O "desktop-video-sdk.zip" "$DECKLINK_SDK_URL" &&\
+        wget -qO "desktop-video-sdk.zip" "$DECKLINK_SDK_URL" &&\
         bsdtar -xf desktop-video-sdk.zip -s'|[^/]*/|./desktopvideoSDK/|' &&\
         cp -r ./desktopvideoSDK/Linux/ $HOME/ffmpeg_sources/BMD_SDK &&\
         rm -r "./desktopvideoSDK";\
