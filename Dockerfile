@@ -25,9 +25,9 @@ ARG NON_FREE="false"
 ARG VMAF="false"
 
 ARG DECKLINK_SUPPORT="false"
-ARG DECKLINK_SDK_URL="https://swr.cloud.blackmagicdesign.com/DeckLink/v12.7.1/Blackmagic_DeckLink_SDK_12.7.1.zip?verify="
-ARG DECKLINK_DRIVER_URL="https://swr.cloud.blackmagicdesign.com/DesktopVideo/v12.7.1/Blackmagic_Desktop_Video_Linux_12.7.1.tar.gz?verify="
-ARG DECKLINK_DRIVER_VERSION="12.7.1"
+ARG DECKLINK_REPO="deb http://your-server/ somerepo main"
+ARG DECKLINK_REPO_KEY="http://your-repo/key.asc"
+ARG DECKLINK_SDK_URL="https://your-server/Blackmagic_DeckLink_SDK_$SOMEVERSION.zip"
 
 ARG NDI_SUPPORT="false"
 ARG NDI_SDK_URL="https://downloads.ndi.tv/SDK/NDI_SDK_Linux/Install_NDI_SDK_v5_Linux.tar.gz"
@@ -94,32 +94,15 @@ RUN LINUX_KERNEL_PACKAGES="" && \
 
 WORKDIR $HOME/decklink
 
-# Get Blackmagic Desktop Video SDK (Link expires... You'll need to get a new one)
+# Get Blackmagic Desktop Video SDK
 RUN if [ "$DECKLINK_SUPPORT" = "true" ];\
     then \
-        #Decklink Driver: Download and extract
-        wget -qO "desktop-video-driver.tar.gz" "$DECKLINK_DRIVER_URL" &&\
-        tar -xvf desktop-video-driver.tar.gz &&\
-        #Decklink Driver: Get .deb name and location
-        DECKLINK_DRIVER_DEB="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64/desktopvideo_12.7.1a1_amd64.deb" &&\
-        SEARCH_DIR="./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION/deb/x86_64" &&\ 
-        echo "Searching for driver in $SEARCH_DIR" &&\
-        for FILE in "$SEARCH_DIR"/*;\
-        do\
-            echo "$FILE" &&\
-            if [[ $FILE == *"desktopvideo_"* ]]; then\
-                echo "Found Desktop Video Drivers" &&\
-                DECKLINK_DRIVER_DEB=$FILE;\
-            fi\
-        done &&\
-        #Decklink Driver: Install the .deb
-        dpkg --install $DECKLINK_DRIVER_DEB || true &&\
-        apt install -f -y &&\
-        dpkg --install $DECKLINK_DRIVER_DEB || true &&\
-        #Decklink Driver: Cleanup files and folder
-        rm -r "./Blackmagic_Desktop_Video_Linux_$DECKLINK_DRIVER_VERSION" &&\
+        echo "$DECKLINK_REPO" > /etc/apt/sources.list.d/decklink.list &&\
+        wget -O /etc/apt/trusted.gpg.d/decklink.asc "$DECKLINK_REPO_KEY" &&\
+        apt-get -y update &&\
+        apt-get -y install mediaexpress desktopvideo desktopvideo-gui &&\
         #Decklink SDK: Get SDK, extract and copy
-        wget -qO "desktop-video-sdk.zip" "$DECKLINK_SDK_URL" &&\
+        wget --no-check-certificate -O "desktop-video-sdk.zip" "$DECKLINK_SDK_URL" &&\
         bsdtar -xf desktop-video-sdk.zip -s'|[^/]*/|./desktopvideoSDK/|' &&\
         cp -r ./desktopvideoSDK/Linux/ $HOME/ffmpeg_sources/BMD_SDK &&\
         rm -r "./desktopvideoSDK";\
@@ -260,7 +243,7 @@ RUN CONFIGURE_OPTIONS="" && FDK_ACC="" &&\
     # Add Decklink Config if option is selected
     if [ "$DECKLINK_SUPPORT" = "true" ];\
     then \
-        CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --enable-decklink "; \
+        CONFIGURE_OPTIONS="$CONFIGURE_OPTIONS --enable-decklink --enable-nonfree"; \
     fi && \
     # Print Configuration Options
     echo "Extra Configured Options: $CONFIGURE_OPTIONS" && \
@@ -302,6 +285,6 @@ RUN apt-get update && apt-get install nodejs -y
 #Install Node.js API
 WORKDIR $HOME/home/node/app
 COPY . .
-RUN npm install
+RUN CXXFLAGS="-fpermissive" npm install
 
 CMD [ "sh", "-c", "npm run $NODE_ENV" ]
