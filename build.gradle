@@ -3,11 +3,11 @@ plugins {
     id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
 }
 
-//buildscript {
-//    dependencies {
-//        classpath "com.github.node-gradle:gradle-node-plugin:7.0.2"
-//    }
-//}
+buildscript {
+    dependencies {
+        classpath "com.github.node-gradle:gradle-node-plugin:7.0.2"
+    }
+}
 
 wrapper {
     gradleVersion = '7.6'
@@ -38,10 +38,8 @@ node {
 }
 
 
-task build {}
-
 // this apparently auto-runs npmInstall 
 // and the standardDocker() bit should run automatically after the build because of the bsd plugin???
-//build.dependsOn npmInstall
+build.dependsOn npmInstall
 
 
