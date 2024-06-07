@@ -14,9 +14,9 @@ wrapper {
 }
 
 
-bsd {
-  standardDocker(publishToECR:false, platform:["linux/amd64"])
-}
+//bsd {
+//  standardDocker(publishToECR:false, platform:["linux/amd64"])
+//}
 
 
 // https://github.com/node-gradle/gradle-node-plugin/blob/main/docs/usage.md
@@ -40,8 +40,8 @@ node {
 
 // this apparently auto-runs npmInstall 
 // and the standardDocker() bit should run automatically after the build because of the bsd plugin???
-build.dependsOn npmInstall
+//build.dependsOn npmInstall
 
-bsd.dependsOn build
+//bsd.dependsOn build
 
 

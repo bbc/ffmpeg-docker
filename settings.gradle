@@ -6,4 +6,4 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-//rootProject.name = 'ffmpeg-docker'
+rootProject.name = 'ffmpeg-docker'
