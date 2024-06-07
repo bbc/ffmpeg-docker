@@ -7,7 +7,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building..'
-                sh 'gradle clean publish'
+                sh './gradlew clean publish'
             }
         }
         stage('Test') {
