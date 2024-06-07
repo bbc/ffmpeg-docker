@@ -42,4 +42,6 @@ node {
 // and the standardDocker() bit should run automatically after the build because of the bsd plugin???
 build.dependsOn npmInstall
 
+bsd.dependsOn build
+
 
