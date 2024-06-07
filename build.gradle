@@ -1,13 +1,13 @@
-plugins {
-    id 'com.github.node-gradle.node' version '7.0.2'
-    id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
-}
-
 buildscript {
     dependencies {
         classpath "com.github.node-gradle:gradle-node-plugin:7.0.2"
     }
 }
+plugins {
+    id 'com.github.node-gradle.node' version '7.0.2'
+    id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
+}
+
 
 wrapper {
     gradleVersion = '7.6'
