@@ -1,0 +1,41 @@
+plugins {
+    id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
+     id 'com.github.node-gradle.node' version '7.0.2'
+}
+
+wrapper {
+    gradleVersion = '7.6'
+}
+
+
+bsd {
+  standardDocker(publishToECR:false, platform:["linux/amd64"])
+}
+
+
+// https://github.com/node-gradle/gradle-node-plugin/blob/main/docs/usage.md
+node {
+    download = true
+    version = "18.17.1"
+
+    // all these below are just the defaults
+    distBaseUrl = "https://nodejs.org/dist"
+    allowInsecureProtocol = null
+    npmVersion = ""
+    yarnVersion = ""
+    npmInstallCommand = "install"
+    workDir = file("${project.projectDir}/.gradle/nodejs")
+    npmWorkDir = file("${project.projectDir}/.gradle/npm")
+    yarnWorkDir = file("${project.projectDir}/.gradle/yarn")
+    nodeProjectDir = file("${project.projectDir}")
+    nodeProxySettings = ProxySettings.SMART
+}
+
+
+buildscript {
+    dependencies {
+        classpath "com.github.node-gradle:gradle-node-plugin:7.0.2"
+    }
+}
+
+// this apparently auto-runs npmInstall 
