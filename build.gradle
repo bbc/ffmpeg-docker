@@ -5,7 +5,8 @@
 //}
 plugins {
     id 'com.github.node-gradle.node' version '7.0.2'
-    id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
+//    id 'uk.co.bbc.bsd.bsd-gradle-plugin' version '2.0.1'
+    id 'com.palantir.docker' version '0.36.0'
 }
 
 
@@ -38,10 +39,13 @@ node {
 }
 
 
-// this apparently auto-runs npmInstall 
-// and the standardDocker() bit should run automatically after the build because of the bsd plugin???
-//build.dependsOn npmInstall
-
-//bsd.dependsOn build
-
+docker {
+    dependsOn npmInstall
+    name "docker-bsd/ffmpeg-docker:0.1"
+    tag 'myRegistry', 'nexus.jupiter.bbc.co.uk:8084/docker-bsd/ffmpeg-docker:0.1'
+    copySpec.from(".").into(".")
+    pull false
+//    push true -- where does this push? not sure
+    noCache true
+}
 
