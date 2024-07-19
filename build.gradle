@@ -41,11 +41,10 @@ node {
 
 docker {
     dependsOn npmInstall
-    name "docker-bsd/ffmpeg-docker:0.1"
-    tag 'myRegistry', 'nexus.jupiter.bbc.co.uk:8084/docker-bsd/ffmpeg-docker:0.1'
+    name "ffmpeg-docker:0.1"
+    tag 'myRegistry', 'nexus.jupiter.bbc.co.uk:8084/docker-bsd/ffmpeg-docker'
     copySpec.from(".").into(".")
     pull false
-//    push true -- where does this push? not sure
     noCache true
 }
 
